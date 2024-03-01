@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Evolutionary Cellular Automata</title>
+  <style>
+    canvas {
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="500" height="500"></canvas>
+  <script>
+    // Get the canvas element
+    const canvas = document.getElementById("canvas");
+
+    // Get the canvas context
+    const ctx = canvas.getContext("2d");
+
+    // Genetic families
+    const geneticFamilies = [
+      { color: "red", capabilities: { movement: 0.2, eating: 0.5, killing: 0.1, reproducing: 0.7, lifespan: 100, friendliness: 0.8 } },
+      { color: "green", capabilities: { movement: 0.5, eating: 0.2, killing: 0.7, reproducing: 0.4, lifespan: 80, friendliness: 0.3 } },
+      { color: "blue", capabilities: { movement: 0.7, eating: 0.4, killing: 0.2, reproducing: 0.5, lifespan: 120, friendliness: 0.5 } }
+    ];
+
+    // Create a 2D array of cells
+    let cells = [];
+    for (let i = 0; i < 100; i++) {
+      cells[i] = [];
+      for (let j = 0; j < 100; j++) {
+        const familyIndex = Math.floor(Math.random() * geneticFamilies.length);
+        cells[i][j] = {
+          alive: Math.random() < 0.5,
+          color: geneticFamilies[familyIndex].color,
+          capabilities: JSON.parse(JSON.stringify(geneticFamilies[familyIndex].capabilities)), // Deep copy
+        };
+      }
+    }
+
+    // Function to mutate capabilities
+    const mutateCapabilities = (capabilities) => {
+      const mutationRate = { movement: 0.05, eating: 0.05, killing: 0.05, reproducing: 0.02, lifespan: 5, friendliness: 0.05 };
+      let newCapabilities = { ...capabilities };
+      for (let capability in newCapabilities) {
+        let mutation = (Math.random() - 0.5) * mutationRate[capability];
+        newCapabilities[capability] += mutation;
+        newCapabilities[capability] = Math.max(0, Math.min(1, newCapabilities[capability])); // Ensure capabilities stay within bounds
+      }
+      return newCapabilities;
+    };
+
+    // Function to update the canvas
+    const updateCanvas = () => {
+      ctx.clearRect(0, 0, 500, 500);
+      for (let i = 0; i < 100; i++) {
+        for (let j = 0; j < 100; j++) {
+          if (cells[i][j].alive) {
+            ctx.fillStyle = cells[i][j].color;
+            ctx.fillRect(i * 5, j * 5, 5, 5);
+          }
+        }
+      }
+    };
+
+    // Run the simulation
+    const runSimulation = () => {
+      let newCells = JSON.parse(JSON.stringify(cells)); // Deep copy
+
+      for (let i = 0; i < 100; i++) {
+        for (let j = 0; j < 100; j++) {
+          if (cells[i][j].alive && Math.random() < cells[i][j].capabilities.reproducing) {
+            newCells[i][j].capabilities = mutateCapabilities(cells[i][j].capabilities);
+          }
+        }
+      }
+
+      cells = newCells;
+      updateCanvas();
+    };
+
+    // Update every 100ms
+    setInterval(runSimulation, 100);
+  </script>
+</body>
+</html>
